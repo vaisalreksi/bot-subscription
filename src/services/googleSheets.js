@@ -15,8 +15,12 @@ class GoogleSheetsService {
         // Service Account credentials from environment
         // Handle different formats of newlines in private key
         let privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
-        // Replace literal \n with actual newlines (handles both \\n and \n)
-        privateKey = privateKey.replace(/\\n/g, '\n');
+
+        // Remove surrounding quotes if present (Docker env issue)
+        privateKey = privateKey.replace(/^["']|["']$/g, '');
+
+        // Replace literal \n with actual newlines
+        privateKey = privateKey.split('\\n').join('\n');
 
         const credentials = {
             type: 'service_account',
