@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Development
+nodemon.json
+scripts/
+
+# Build
+dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# GitHub
+.github/
