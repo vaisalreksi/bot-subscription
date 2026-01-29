@@ -1,17 +1,19 @@
 # Bot Subscription
 
-Discord bot untuk sistem subscription menggunakan Discord.js v14.
+Discord bot untuk sistem subscription management dengan integrasi Google Sheets.
 
 ## 📋 Prerequisites
 
 - Node.js v18.0.0 atau lebih baru
 - Discord Bot Token dari [Discord Developer Portal](https://discord.com/developers/applications)
+- Google Cloud Project dengan Sheets API enabled
+- Service Account credentials
 
 ## 🚀 Instalasi
 
 1. **Clone repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/vaisalreksi/bot-subscription.git
    cd bot-subscription
    ```
 
@@ -22,10 +24,9 @@ Discord bot untuk sistem subscription menggunakan Discord.js v14.
 
 3. **Setup environment**
    
-   Buat file `.env` di root folder:
-   ```env
-   TOKEN=your_discord_bot_token
-   CLIENT_ID=your_client_id
+   Copy `.env.example` ke `.env` dan isi semua nilai:
+   ```bash
+   cp .env.example .env
    ```
 
 4. **Deploy slash commands**
@@ -54,61 +55,60 @@ bot-subscription/
 ├── src/
 │   ├── index.js              # Entry point utama
 │   ├── deploy-commands.js    # Script deploy slash commands
-│   └── commands/             # Folder untuk commands
-│       └── ping.js           # Command /ping
+│   ├── commands/             # Folder untuk commands
+│   │   ├── ping.js           # Command /ping
+│   │   ├── profile.js        # Command /profile
+│   │   ├── check.js          # Command /check
+│   │   ├── payment.js        # Command /payment
+│   │   ├── addbill.js        # Command /addbill
+│   │   ├── subscription.js   # Command /subscription
+│   │   └── reset.js          # Command /reset
+│   └── services/
+│       └── googleSheets.js   # Google Sheets API service
 ├── scripts/
 │   └── build.js              # Build script
 ├── .env                      # Environment variables (tidak di-commit)
+├── .env.example              # Template environment
 ├── .gitignore
 ├── nodemon.json              # Nodemon configuration
 ├── package.json
 └── README.md
 ```
 
-## 🛠️ Menambahkan Command Baru
+## 🤖 Slash Commands
 
-1. Buat file baru di `src/commands/`, contoh `hello.js`:
+| Command | Deskripsi |
+|---------|-----------|
+| `/ping` | Cek respon bot dan latency |
+| `/profile` | Lihat profil Discord kamu |
+| `/check` | Cek tagihan subscription (VPS/Google/Domain) |
+| `/payment` | Record pembayaran dengan bukti gambar |
+| `/addbill` | Tambah tagihan dengan nominal |
+| `/subscription` | Lihat data subscription dalam tabel |
+| `/reset` | Reset data subscription (dengan password) |
 
-```javascript
-import { SlashCommandBuilder } from 'discord.js';
+### Detail Commands
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName('hello')
-        .setDescription('Menyapa user'),
+#### `/check type:<vps/google/domain>`
+Cek tagihan berdasarkan username:
+- Username `cucudukun`: membaca dari kolom F15 (Google) atau G15 (VPS/Domain)
+- Username lain: membaca dari kolom D15 (Google) atau E15 (VPS/Domain)
 
-    async execute(interaction) {
-        await interaction.reply(`Halo, ${interaction.user.username}! 👋`);
-    }
-};
-```
+#### `/payment type:<vps/google/domain> proof:<image>`
+Record pembayaran dengan bukti:
+- Username `cucudukun`: insert tanggal ke kolom G (G3:G14)
+- Username lain: insert tanggal ke kolom E (E3:E14)
 
-2. Jalankan deploy commands:
-```bash
-npm run deploy-commands
-```
+#### `/addbill type:<vps/google/domain> nominal:<amount> proof:<image>`
+Tambah tagihan:
+- Insert tanggal ke kolom B (B3:B14)
+- Insert nominal ke kolom C (C3:C14)
 
-3. Restart bot (otomatis jika menggunakan `npm run dev`)
+#### `/subscription type:<vps/google/domain>`
+Menampilkan data dari range A1:G15 dalam format tabel.
 
-## 🚢 Deployment Production
-
-1. Build project:
-   ```bash
-   npm run build
-   ```
-
-2. Di folder `dist/`:
-   ```bash
-   cd dist
-   npm install --production
-   ```
-
-3. Buat file `.env` dengan credentials
-
-4. Jalankan:
-   ```bash
-   npm start
-   ```
+#### `/reset type:<vps/google/domain> password:<password>`
+Reset data di ranges: B3:C14, E3:E14, G3:G14
 
 ## 📝 Environment Variables
 
@@ -123,13 +123,15 @@ npm run deploy-commands
 |----------|-----------|
 | `GOOGLE_PROJECT_ID` | Google Cloud Project ID |
 | `GOOGLE_PRIVATE_KEY_ID` | Service Account Private Key ID |
-| `GOOGLE_PRIVATE_KEY` | Service Account Private Key (dengan `\n` untuk newlines) |
+| `GOOGLE_PRIVATE_KEY` | Service Account Private Key |
 | `GOOGLE_CLIENT_EMAIL` | Service Account Email |
 | `GOOGLE_CLIENT_ID` | Service Account Client ID |
 | `GOOGLE_SHEET_ID` | ID Google Spreadsheet |
-| `GOOGLE_SHEET_VPS_RANGE` | Range untuk data VPS (default: `VPS!A:E`) |
-| `GOOGLE_SHEET_GOOGLE_RANGE` | Range untuk data Google (default: `Google!A:E`) |
-| `GOOGLE_SHEET_DOMAIN_RANGE` | Range untuk data Domain (default: `Domain!A:E`) |
+
+### Reset Command
+| Variable | Deskripsi |
+|----------|-----------|
+| `RESET_PASSWORD` | Password untuk command /reset |
 
 ## ☁️ Setup Google Sheets API
 
@@ -151,50 +153,57 @@ npm run deploy-commands
 
 4. **Konfigurasi Environment**
    - Buka file JSON yang didownload
-   - Copy nilai berikut ke `.env`:
-     ```env
-     GOOGLE_PROJECT_ID=project_id
-     GOOGLE_PRIVATE_KEY_ID=private_key_id
-     GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-     GOOGLE_CLIENT_EMAIL=xxx@xxx.iam.gserviceaccount.com
-     GOOGLE_CLIENT_ID=client_id
-     ```
+   - Copy nilai ke `.env`
 
 5. **Share Google Sheet**
    - Buka Google Sheet yang ingin diakses
    - Klik **Share**
    - Tambahkan email service account (`GOOGLE_CLIENT_EMAIL`)
-   - Berikan akses **Viewer**
-
-6. **Konfigurasi Sheet ID**
-   - Copy Sheet ID dari URL: `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
-   - Tambahkan ke `.env`:
-     ```env
-     GOOGLE_SHEET_ID=your_sheet_id
-     ```
+   - Berikan akses **Editor** (untuk write access)
 
 ## 📋 Struktur Google Sheet
 
-Buat 3 sheet dengan nama: `VPS`, `Google`, `Domain`
+Buat **3 sheet** dengan nama: `Google`, `VPS`, `Domain`
 
-Contoh struktur (baris pertama adalah header):
-| Nama | Provider | Expiry Date | Status | Notes |
-|------|----------|-------------|--------|-------|
-| Server 1 | DigitalOcean | 2024-12-31 | Active | Main server |
+Contoh struktur (kolom A-G, row 1-15):
 
-## 🤖 Slash Commands
+| A | B | C | D | E | F | G |
+|---|---|---|---|---|---|---|
+| Header | Tanggal | Nominal | Total | Payment | Total | Payment |
+| ... | ... | ... | ... | ... | ... | ... |
 
-| Command | Deskripsi |
-|---------|-----------|
-| `/ping` | Cek respon bot dan latency |
-| `/profile` | Lihat profil Discord kamu |
-| `/check` | Cek status subscription (VPS/Google/Domain) |
+- **B3:C14** - Tanggal & Nominal tagihan
+- **E3:E14** - Payment dates (user biasa)
+- **G3:G14** - Payment dates (cucudukun)
+- **D15/E15** - Total tagihan (user biasa)
+- **F15/G15** - Total tagihan (cucudukun)
+
+## 🚢 Deployment Production
+
+1. Build project:
+   ```bash
+   npm run build
+   ```
+
+2. Di folder `dist/`:
+   ```bash
+   cd dist
+   npm install --production
+   ```
+
+3. Buat file `.env` dengan credentials
+
+4. Jalankan:
+   ```bash
+   npm start
+   ```
 
 ## 🔗 Links
 
 - [Discord.js Documentation](https://discord.js.org/)
 - [Discord Developer Portal](https://discord.com/developers/applications)
-- [Discord.js Guide](https://discordjs.guide/)
+- [Google Cloud Console](https://console.cloud.google.com/)
+- [Google Sheets API](https://developers.google.com/sheets/api)
 
 ## 📄 License
 
