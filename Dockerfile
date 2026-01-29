@@ -32,5 +32,8 @@ USER nodejs
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node -e "console.log('healthy')" || exit 1
 
+# Set OpenSSL legacy provider for compatibility
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 # Start the bot
 CMD ["node", "src/index.js"]

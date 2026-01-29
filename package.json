@@ -5,10 +5,10 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
+    "dev": "NODE_OPTIONS=--openssl-legacy-provider nodemon src/index.js",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider node src/index.js",
     "build": "node scripts/build.js",
-    "deploy-commands": "node src/deploy-commands.js"
+    "deploy-commands": "NODE_OPTIONS=--openssl-legacy-provider node src/deploy-commands.js"
   },
   "keywords": [
     "discord",
