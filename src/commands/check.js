@@ -15,14 +15,14 @@ const CONFIG = {
         emoji: '🖥️',
         color: 0x5865F2,
         sheet: 'VPS',
-        billCell: { cucudukun: 'G15', default: 'E15' }
+        billCell: { cucudukun: 'F15', default: 'D15' }
     },
     domain: {
         name: 'Domain',
         emoji: '🌐',
         color: 0x34A853,
         sheet: 'Domain',
-        billCell: { cucudukun: 'G15', default: 'E15' }
+        billCell: { cucudukun: 'F15', default: 'D15' }
     }
 };
 
